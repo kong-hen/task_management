@@ -17,16 +17,16 @@
 				btnText: '广告加载中',
 				_rewardedVideoAd: null,
 				web: false,
-				tid: 0,
+				vid: 0,
 				start: 0,
 				stop: 0,
 				img: "https://c-ssl.duitang.com/uploads/blog/202503/16/5zSNqaEXuOqgmzg.jpg"
 			}
 		},
 		onLoad(options) {
-			if(options.tid){
+			if(options.vid){
 				this.web = true;
-				this.tid = options.tid;
+				this.vid = options.vid;
 			}
 			this.getPhoto();
 		},
@@ -119,7 +119,7 @@
 							'content-type': 'application/x-www-form-urlencoded'
 						},
 						data: {
-							tid: this.tid,
+							vid: this.vid,
 							status: status
 						},
 						success: (res) => {

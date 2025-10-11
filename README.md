@@ -144,7 +144,7 @@ npm run build
 
 - 配置`request合法域名`
 ```html
-https://task.dev.xma.run
+https://task.dev.xma.run（替换为你自己的后台域名）
 https://www.duitang.com
 ```
 

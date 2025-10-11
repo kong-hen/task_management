@@ -139,7 +139,7 @@ if ($taskView) {
 }
 
 // 拼接urlScheme字符串
-$urlScheme = "weixin://dl/business/?appid={$appid}&path={$path}&query=" . urlencode("tid={$taskViewId}");
+$urlScheme = "weixin://dl/business/?appid={$appid}&path={$path}&query=" . urlencode("vid={$taskViewId}");
 
 // 返回任务未完成结果
 $result = [
