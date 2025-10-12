@@ -1,5 +1,10 @@
 <?php
 
+// 允许跨域
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
 // 获取原始输入并解析JSON
 $rawInput = file_get_contents('php://input');
 $inputData = json_decode($rawInput, true);
