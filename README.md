@@ -32,8 +32,6 @@
 
 [空痕任务管理系统](https://task.dev.xma.run)
 
-后台数据为静态演示数据，无法更改
-
 ### 演示图片
 
 1. 管理后台
@@ -81,6 +79,9 @@ location /api/ {
     }
 }
 ```
+- 配置跨域
+[配置跨域教程](https://www.khkj6.com/archives/244.html#wznav_5)
+请参考：解决方法的第1种
 
 4. 导入数据库
 
