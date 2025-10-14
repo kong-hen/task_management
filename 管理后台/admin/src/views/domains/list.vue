@@ -139,21 +139,17 @@
 
   const form = reactive<UpdateDomainParams>(initForm());
 
-  const isValidUrl = (val: string) => {
-    const regex = /^https?:\/\/[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/i;
-    return regex.test(val);
-  };
-
   /* 新增域名表单验证规则 */
   const rulesCreate = {
     name: [{ required: true, message: '请输入域名名称', type: 'error', trigger: 'blur' }],
     url: [
-      { required: true, message: '请输入URL', type: 'error', trigger: 'blur' },
+      { required: true, message: '请输入URL', type: 'error' },
       {
-        validator: (val: string) => isValidUrl(val),
+        url: {
+          protocols: ['http', 'https'],
+          require_protocol: true,
+        },
         message: 'URL格式不正确，需以 http/https 开头',
-        type: 'error',
-        trigger: 'blur',
       },
     ],
   };

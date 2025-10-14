@@ -53,7 +53,7 @@ if (!$task || $task['status'] != 1) {
 }
 
 // 随机选取一个小程序
-$xcxList = $_DB->select('xcx', ['appid', 'secret', 'path'], ['status' => 1], '', 1);
+$xcxList = $_DB->select('xcx', ['type', 'appid', 'secret', 'path'], ['status' => 1], '', 1);
 $xcxInfo = $xcxList[0] ?? null;
 
 // 检查有可用小程序

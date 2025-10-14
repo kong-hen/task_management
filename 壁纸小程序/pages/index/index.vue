@@ -6,8 +6,8 @@
     </view>
     <view class="search-box">
       <view class="search-content">
-        <view class="search-title"><text>搜壁纸</text></view>
-        <view class="search-subtitle"><text>好壁纸，一搜就有</text></view>
+        <view class="search-title"><text>爱搜图库</text></view>
+        <view class="search-subtitle"><text>好图，一搜就有</text></view>
         <input v-model="text" placeholder="请输入关键词" class="search-input" placeholder-class="search-placeholder" />
         <button class="search-button" @click="chooseType">{{ typeText }}</button>
         <button class="search-button" @click="handleSearch">搜索</button>
@@ -42,13 +42,13 @@
     },
 		onShareAppMessage() {
 			return {
-				title: '爱搜壁纸',
+				title: '爱搜图库',
 				path: '/pages/index/index'
 			}
 		},
 		onShareTimeline() {
 			return {
-				title: '爱搜壁纸',
+				title: '爱搜图库',
 				path: '/pages/index/index'
 			}
 		},
