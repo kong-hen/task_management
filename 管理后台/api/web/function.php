@@ -101,7 +101,6 @@ function processAward($db, $task, $viewInfo, $tid, $viewId)
     if (count($codeArr) > 0) {
       $award = $codeArr[0];
       $remainder = implode("|", array_slice($codeArr, 1));
-      print_r($remainder);
 
       // 更新剩余卡密
       $db->update(
