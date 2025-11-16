@@ -45,7 +45,8 @@
   <t-dialog v-model:visible="dialogVisible" attach="body" :z-index="5000" :header="isEdit ? '修改任务' : '新增任务'"
     :confirm-btn="{ content: isSubmitting ? '提交中...' : '确定', theme: 'primary', loading: isSubmitting }"
     :cancel-btn="{ content: '取消' }" @confirm="onSubmit">
-    <t-form ref="formRef" :data="form" :rules="isEdit ? rulesEdit : rulesCreate" label-align="left" :label-width="100" :status-icon="true">
+    <t-form ref="formRef" :data="form" :rules="isEdit ? rulesEdit : rulesCreate" label-align="left" :label-width="100"
+      :status-icon="true">
       <t-form-item v-if="isEdit" label="ID" name="id">
         <t-input :value="form.id" disabled />
       </t-form-item>
@@ -61,10 +62,11 @@
         <t-radio-group v-model="form.type">
           <t-radio :value="1">链接</t-radio>
           <t-radio :value="2">文本</t-radio>
+          <t-radio :value="3">卡密</t-radio>
         </t-radio-group>
       </t-form-item>
       <t-form-item label="奖励内容" name="award">
-        <t-textarea v-model="form.award" placeholder="请输入内容" clearable />
+        <t-textarea v-model="form.award" placeholder="请输入奖励内容。卡密一行一个" clearable />
       </t-form-item>
       <t-form-item label="强点广告" name="click">
         <t-radio-group v-model="form.click">
@@ -242,8 +244,8 @@
         };
         const req = isEdit.value ? updateTask({ id: form.id, ...payload, status: form.status } as UpdateTaskParams) : createTask(payload as CreateTaskParams);
         return req
-          .then((res) => {
-            MessagePlugin.success(res.msg || (isEdit.value ? '修改成功' : '新增成功'));
+          .then(() => {
+            MessagePlugin.success(isEdit.value ? '修改成功' : '新增成功');
             dialogVisible.value = false;
             fetchList();
           })
@@ -291,8 +293,8 @@
   function onBatchDelete() {
     if (selectedRowKeys.value.length === 0) return;
     deleteTasks({ ids: selectedRowKeys.value as number[] } as DeleteTasksParams)
-      .then((res) => {
-        MessagePlugin.success(res.msg || '批量删除成功');
+      .then(() => {
+        MessagePlugin.success('批量删除成功');
         selectedRowKeys.value = [];
         fetchList();
       })

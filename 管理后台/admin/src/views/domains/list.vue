@@ -193,8 +193,8 @@
         };
         const req = isEdit.value ? updateDomain({ id: form.id, ...payload, status: form.status } as UpdateDomainParams) : createDomain(payload);
         return req
-          .then((res) => {
-            MessagePlugin.success(res.msg || (isEdit.value ? '修改成功' : '新增成功'));
+          .then(() => {
+            MessagePlugin.success(isEdit.value ? '修改成功' : '新增成功');
             dialogVisible.value = false;
             fetchList();
           })
@@ -215,8 +215,8 @@
   /* 删除单个域名 */
   function onDelete(id: number) {
     deleteDomainsByIds({ ids: [id] } as DeleteDomainsParams)
-      .then((res) => {
-        MessagePlugin.success(res.msg || '删除成功');
+      .then(() => {
+        MessagePlugin.success('删除成功');
         fetchList();
       })
       .catch((err) => {
@@ -232,8 +232,8 @@
   function onBatchDelete() {
     if (selectedRowKeys.value.length === 0) return;
     deleteDomainsByIds({ ids: selectedRowKeys.value as number[] } as DeleteDomainsParams)
-      .then((res) => {
-        MessagePlugin.success(res.msg || '批量删除成功');
+      .then(() => {
+        MessagePlugin.success('批量删除成功');
         selectedRowKeys.value = [];
         fetchList();
       })

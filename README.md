@@ -80,6 +80,7 @@ location /api/ {
 }
 ```
 - 配置跨域
+
 [配置跨域教程](https://www.khkj6.com/archives/244.html#wznav_6) 请参考第1种解决方法
 
 4. 导入数据库
@@ -132,7 +133,7 @@ npm run build
 
 2. 在`manifest.json`中获取新AppID
 
-3. 修改`/pages/user/view`中的后台地址
+3. 修改`/pages/user/view`中的后台地址及广告ID
 
 4. 修改`/pages/user/work`中的二维码
 
@@ -157,3 +158,7 @@ https://c-ssl.duitang.com
 ```html
 pages/user/view;pages/user/work
 ```
+
+8. 注意
+
+如果小程序用户不足，未开通流量主，请将`/pages/user/view_无广告.vue`重命名为`/pages/user/view.vue`使用，开通流量主后再使用原`/pages/user/view.vue`文件
