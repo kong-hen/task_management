@@ -8,6 +8,8 @@
 </template>
 
 <script>
+	import SignatureUtil from '@/utils/signature.js'
+	
 	export default{
 		data() {
 			return{
@@ -117,41 +119,103 @@
 					if((this.stop - this.start) > 3000) {
 						status = 2
 					}
-					uni.request({
-						url: this.baseUrl + "/api/xcx/",
-						method: 'POST',
-						header: {
-							'content-type': 'application/x-www-form-urlencoded'
-						},
-						data: {
-							vid: this.vid,
-							status: status
-						},
-						success: (res) => {
-							uni.hideLoading();
-							if(res.data.code === 200){
-								uni.showToast({
-									title: '解锁成功',
-									icon: "none",
-									duration: 500
-								})
-								setTimeout(()=> {
-									this.toDown();
-								}, 200)
-							}else{
-								uni.showToast({
-									title: res.data.msg,
-									icon: "none"
-								})
-							}
+					
+					// 获取登录code
+					uni.login({
+						onlyAuthorize: true,
+					  success: (loginRes) => {
+							// 从微信获取用户密钥
+							const userCryptoManager = wx.getUserCryptoManager()
+							userCryptoManager.getLatestUserKey({
+								success: (cryptRes) => {
+									let signatureParams = null; // 在外层声明变量
+									try {
+										const js_code = loginRes.code
+										const { encryptKey, iv, version, expireTime } = cryptRes
+										const appid = uni.getAccountInfoSync().miniProgram.appId;
+										signatureParams = SignatureUtil.genSignedParams({
+											appid: appid,
+											js_code: js_code,
+											version: version,
+											vid: this.vid,
+											status: status
+										}, encryptKey)
+										console.log("加密结果：", signatureParams)
+									} catch(err) {
+										uni.hideLoading()
+										console.error("请求签名失败：", err)
+										uni.showToast({
+											title: "请求签名失败, 请联系客服",
+											icon: "none"
+										})
+										return
+									}
+									
+									// 检查签名参数是否成功生成
+									if (!signatureParams) {
+										uni.hideLoading()
+										uni.showToast({
+											title: "签名参数生成失败",
+											icon: "none"
+										})
+										return
+									}
+									
+									// 发送广告观看结果
+									uni.request({
+										url: this.baseUrl + "/api/xcx/",
+										method: 'POST',
+										header: {
+											'content-type': 'application/x-www-form-urlencoded'
+										},
+										data: signatureParams,
+										success: (reqRes) => {
+											console.log("请求结果：", reqRes)
+											uni.hideLoading();
+											if(reqRes.data.code === 200){
+												uni.showToast({
+													title: '解锁成功',
+													icon: "none",
+													duration: 500
+												})
+												setTimeout(()=> {
+													this.toDown();
+												}, 200)
+											}else{
+												uni.showToast({
+													title: reqRes.data.msg,
+													icon: "none"
+												})
+											}
+										},
+										fail: (err) => {
+											console.error('上传广告信息到服务器失败：', err)
+											uni.hideLoading()
+											uni.showToast({
+												title: "获取广告状态失败",
+												icon: "none"
+											})
+										}
+									})
+								},
+								fail: (err) => {
+									uni.hideLoading()
+									console.error("生成密钥失败：", err)
+									uni.showToast({
+										title: "生成密钥失败, 请联系客服",
+										icon: "none"
+									})
+								}
+							})
 						},
 						fail: (err) => {
-							console.error('上传广告信息到服务器失败：', err)
 							uni.hideLoading()
+							console.error("用户登录失败：", err)
 							uni.showToast({
-								title: '获取广告状态失败'
+								title: "用户登录失败",
+								icon: "none"
 							})
-						}
+						},
 					})
 				}else{
 					// 正常使用当前页面

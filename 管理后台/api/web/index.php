@@ -72,6 +72,10 @@ if ($viewInfo) {
       'type' => $task['type'],
       'award' => $award
     ]);
+  } else if ($viewInfo['status'] == 1) {
+    $msg = "未点击并体验广告超过5秒，请重试";
+  }else {
+    $msg = "任务未完成";
   }
 } else {
   // 创建新记录并更新统计
@@ -83,7 +87,7 @@ if ($viewInfo) {
 [$dataType, $data] = generateXcxData($xcxType, $appid, $secret, $path, $viewId);
 
 // 返回任务未完成结果
-returnJson(400, '任务未完成', [
+returnJson(400, $msg, [
   'title' => $task['name'],
   'click' => $task['click'],
   'url_type' => $dataType,

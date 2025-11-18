@@ -1,21 +1,23 @@
 <?php
 
+// 引入配置文件
+include '../config.php';
+include './function.php';
+require_once "SignatureUtil.php";
+
+
 // 获取参数
 $vid = $_POST['vid'] ?? null;
 $status = $_POST['status'] ?? null;
+$appid = $_POST['appid'] ?? null;
+$js_code = $_POST['js_code'] ?? null;
+$version = $_POST['version'] ?? null;
 
 // 检验参数
-if (!is_numeric($vid) || !in_array($status, [1, 2])) {
-  $result = [
-    'code' => 500,
-    'msg' => '参数错误'
-  ];
-  echo json_encode($result);
-  exit;
+if (!is_numeric($vid) || !in_array($status, [1, 2]) || empty($appid) || empty($js_code) || empty($version)) {
+  returnJson(500, '参数错误');
 }
 
-// 引入配置文件
-include '../config.php';
 
 // 重写数据库信息
 $dbConfig = [
@@ -29,6 +31,29 @@ include '../admin/common/DB.php';
 
 // 实例化DB
 $_DB = new DB($dbConfig);
+
+// 获取小程序信息
+$appInfo = getAppInfo($_DB, $appid);
+$appid = $appInfo['appid'];
+$secret = $appInfo['secret'];
+
+// 获取用户登录session_key
+$sessionData = getSessionKey($appid, $secret, $js_code);
+
+// 获取微信access_token
+$accessToken = getAccessToken($appid, $secret);
+
+// 使用session_key对空字串签名
+$signature = hash_hmac('sha256', "", $sessionData['session_key']);
+$openid = $sessionData['openid'] ?? null;
+
+// 获取用户encryptKey
+$encryptKey = getSignatureKey($accessToken, $openid, $signature, $version);
+
+// 校验签名
+if (!SignatureUtil::verify($_POST, $encryptKey)) {
+  returnJson(400, "签名不一致");
+}
 
 // 获取观看信息
 $viewList = $_DB->select(

@@ -15,7 +15,7 @@ $secret = $inputData['secret'] ?? null;
 $path = $inputData['path'] ?? null;
 
 // 验证数据不能为空
-if (!in_array($type, [0, 1]) || empty($name) || empty($appid) || empty($path)) {
+if (!in_array($type, [0, 1]) || empty($name) || empty($appid) || empty($secret) || empty($path)) {
     $result = [
         'code' => 400,
         'msg' => '参数不能为空',

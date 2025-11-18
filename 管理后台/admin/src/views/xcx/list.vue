@@ -54,7 +54,7 @@
       <t-form-item label="AppID" name="appid">
         <t-input v-model="form.appid" placeholder="请输入AppID" clearable />
       </t-form-item>
-      <t-form-item v-show="form.type === 0" label="小程序密钥" help="个体小程序密钥必填" name="secret">
+      <t-form-item label="小程序密钥" help="个体小程序密钥必填" name="secret">
         <t-input v-model="form.secret" placeholder="请输入小程序密钥" clearable />
       </t-form-item>
       <t-form-item label="广告路径" name="path">
