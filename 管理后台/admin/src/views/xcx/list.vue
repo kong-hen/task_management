@@ -265,8 +265,8 @@
     const target = checked ? 1 : 0;
     updateXcxStatus({ id: row.id, status: target } as UpdateXcxStatusParams)
       .then(() => {
-        row.status = target;
         MessagePlugin.success(target === 1 ? '已启用' : '已禁用');
+        fetchList();
       })
       .catch((err) => {
         console.error(err);

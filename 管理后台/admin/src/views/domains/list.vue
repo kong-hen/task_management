@@ -248,8 +248,8 @@
     const target = checked ? 1 : 0;
     updateDomainStatus({ id: row.id, status: target } as UpdateDomainStatusParams)
       .then(() => {
-        row.status = target;
         MessagePlugin.success(target === 1 ? '已启用' : '已禁用');
+        fetchList();
       })
       .catch((err) => {
         console.error(err);
