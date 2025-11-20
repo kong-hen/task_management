@@ -87,20 +87,20 @@
 
   <t-row class="mt-l" :gutter="[16, 16]">
     <t-col :lg="9" :xs="12">
-      <t-card title="今日数据" :bordered="false" :loading="loading">
+      <t-card title="今日数据" :bordered="false">
         <div ref="todayDataContainer" style="height: 278px;"></div>
       </t-card>
     </t-col>
     <t-col :lg="3" :xs="12">
-      <t-card title="任务数据" :bordered="false" :loading="loading">
+      <t-card title="任务数据" :bordered="false">
         <div ref="viewDataContainer" style="height: 278px;"></div>
       </t-card>
     </t-col>
   </t-row>
 
-  <t-card title="近7日数据" :bordered="false" class="mt-l" :loading="loading">
-    <t-table :data="weekList" :columns="columns" row-key="id" :hover="true" size="medium"
-      tableLayout="fixed" style="width: 100%;">
+  <t-card title="近7日数据" :bordered="false" class="mt-l">
+    <t-table :data="weekList" :columns="columns" row-key="id" :hover="true" size="medium" tableLayout="fixed"
+      style="width: 100%;" :loading="loading">
     </t-table>
   </t-card>
 </template>
