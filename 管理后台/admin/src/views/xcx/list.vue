@@ -11,7 +11,7 @@
         :selected-row-keys="selectedRowKeys" @select-change="onSelectChange" tableLayout="fixed" style="width: 100%;">
 
         <template #type="{ row }">
-          <t-tag :theme="row.type === 1 ? 'primary' : 'success'">{{ row.type === 1 ? '非个体' : '个体' }}</t-tag>
+          <t-tag :theme="row.type === 1 ? 'primary' : 'success'">{{ row.type === 1 ? '非个人' : '个人' }}</t-tag>
         </template>
 
         <template #status="{ row }">
@@ -37,15 +37,15 @@
   <!-- 小程序信息编辑弹窗 -->
   <t-dialog v-model:visible="dialogVisible" attach="body" :z-index="5000" :header="isEdit ? '修改小程序' : '新增小程序'"
     :confirm-btn="{ content: isSubmitting ? '提交中...' : '确定', theme: 'primary', loading: isSubmitting }"
-    :cancel-btn="{ content: '取消' }" @confirm="onSubmit">
-    <t-form ref="formRef" :data="form" :rules="isEdit ? rulesEdit : rulesCreate" label-align="left" :label-width="100" :status-icon="true">
+    :cancel-btn="{ content: '取消' }" @confirm="formRef?.submit()">
+    <t-form ref="formRef" :data="form" :rules="isEdit ? rulesEdit : rulesCreate" label-align="left" :label-width="100" :status-icon="true" @submit="onSubmit">
       <t-form-item v-if="isEdit" label="ID" name="id">
         <t-input :value="form.id" disabled />
       </t-form-item>
       <t-form-item label="类型" name="type">
         <t-radio-group v-model="form.type">
-          <t-radio :value="1">非个体</t-radio>
-          <t-radio :value="0">个体</t-radio>
+          <t-radio :value="1">非个人</t-radio>
+          <t-radio :value="0">个人</t-radio>
         </t-radio-group>
       </t-form-item>
       <t-form-item label="名称" name="name">
@@ -54,7 +54,7 @@
       <t-form-item label="AppID" name="appid">
         <t-input v-model="form.appid" placeholder="请输入AppID" clearable />
       </t-form-item>
-      <t-form-item label="小程序密钥" help="个体小程序密钥必填" name="secret">
+      <t-form-item label="小程序密钥" name="secret">
         <t-input v-model="form.secret" placeholder="请输入小程序密钥" clearable />
       </t-form-item>
       <t-form-item label="广告路径" name="path">
@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
   import { ref, reactive, onMounted } from 'vue';
-  import { MessagePlugin } from 'tdesign-vue-next';
+  import { MessagePlugin, type FormProps } from 'tdesign-vue-next';
   import { getXcxList, createXcx, updateXcx, deleteXcx, updateXcxStatus } from '@/api/xcx';
   import type { XcxItem, XcxListResult, ListXcxParams, CreateXcxParams, UpdateXcxParams, UpdateXcxStatusParams, DeleteXcxParams } from '@/api/model/xcxModel';
 
@@ -110,7 +110,7 @@
   ];
 
   /* 获取小程序列表 */
-  function fetchList() {
+  const fetchList = () => {
     loading.value = true;
     getXcxList({ page: page.value, size: size.value } as ListXcxParams)
       .then((res: XcxListResult) => {
@@ -129,7 +129,7 @@
   }
 
   /* 选择变化 */
-  function onSelectChange(keys: Array<string | number>) {
+  const onSelectChange = (keys: Array<string | number>) => {
     selectedRowKeys.value = keys;
   }
 
@@ -156,31 +156,30 @@
   const form = reactive<UpdateXcxParams>(initForm());
 
   /* 新增小程序表单验证规则 */
-  const rulesCreate = {
+  const rulesCreate: FormProps['rules'] = {
     type: [{ required: true, message: '请选择类型', type: 'error', trigger: 'change' }],
     name: [{ required: true, message: '请输入小程序名称', type: 'error', trigger: 'blur' }],
     appid: [{ required: true, message: '请输入AppID', type: 'error', trigger: 'blur' }],
-    secret: [{ required: true, message: '个体小程序密钥必填', type: 'error', trigger: 'blur' },
-    { validator: (val: string) => form.type===0 && val.length > 0, message: '个体小程序密钥必填' , type: 'error', trigger: 'blur' }, ],
+    secret: [{ required: true, message: '请输入小程序密钥', type: 'error', trigger: 'blur' }],
     path: [{ required: true, message: '请输入广告路径', type: 'error', trigger: 'blur' }],
   };
 
   /* 修改小程序表单验证规则 */
-  const rulesEdit = {
+  const rulesEdit: FormProps['rules'] = {
     id: [{ required: true, message: 'ID异常', type: 'error', trigger: 'blur' }],
     ...rulesCreate,
     status: [{ required: true, message: '请选择状态' }],
   };
 
   /* 点击创建按钮 */
-  function openCreate() {
+  const openCreate = () => {
     Object.assign(form, initForm());
     isEdit.value = false;
     dialogVisible.value = true;
   }
 
   /* 点击编辑按钮 */
-  function openEdit(row: XcxItem) {
+  const openEdit = (row: XcxItem) => {
     Object.assign(form, {
       id: row.id,
       type: row.type as 0 | 1,
@@ -195,34 +194,32 @@
   }
 
   /* 提交表单 */
-  function onSubmit() {
+  const onSubmit: FormProps['onSubmit'] = ({ validateResult, firstError }) => {
     if (!formRef.value) return;
+    if (validateResult !== true) {
+      console.error('表单验证失败:', validateResult);
+      console.error(firstError);
+      MessagePlugin.warning(firstError || '请完善表单信息');
+      return;
+    }
     isSubmitting.value = true;
-    formRef.value
-      .validate()
+    const payload: any = {
+      type: form.type,
+      name: form.name,
+      appid: form.appid,
+      secret: form.secret,
+      path: form.path,
+    };
+    const req = isEdit.value ? updateXcx({ id: form.id, ...payload, status: form.status } as UpdateXcxParams) : createXcx(payload as CreateXcxParams);
+    return req
       .then(() => {
-        const payload: any = {
-          type: form.type,
-          name: form.name,
-          appid: form.appid,
-          secret: form.secret,
-          path: form.path,
-        };
-        const req = isEdit.value ? updateXcx({ id: form.id, ...payload, status: form.status } as UpdateXcxParams) : createXcx(payload as CreateXcxParams);
-        return req
-          .then(() => {
-            MessagePlugin.success(isEdit.value ? '修改成功' : '新增成功');
-            dialogVisible.value = false;
-            fetchList();
-          })
-          .catch((err) => {
-            console.error(err);
-            MessagePlugin.error(isEdit.value ? '修改失败' : '新增失败');
-          });
+        MessagePlugin.success(isEdit.value ? '修改成功' : '新增成功');
+        dialogVisible.value = false;
+        fetchList();
       })
-      .catch((err: any) => {
+      .catch((err) => {
         console.error(err);
-        MessagePlugin.warning('请完善表单信息');
+        MessagePlugin.error(isEdit.value ? '修改失败' : '新增失败');
       })
       .finally(() => {
         isSubmitting.value = false;
@@ -230,7 +227,7 @@
   }
 
   /* 删除单个小程序 */
-  function onDelete(id: number) {
+  const onDelete = (id: number) => {
     deleteXcx({ ids: [id] } as DeleteXcxParams)
       .then(() => {
         MessagePlugin.success('删除成功');
@@ -246,7 +243,7 @@
   const deleteConfirmDialog = ref(false);
 
   /* 批量删除小程序 */
-  function onBatchDelete() {
+  const onBatchDelete = () => {
     if (selectedRowKeys.value.length === 0) return;
     deleteXcx({ ids: selectedRowKeys.value as number[] } as DeleteXcxParams)
       .then(() => {
@@ -264,7 +261,7 @@
   }
 
   /* 小程序状态切换 */
-  function onToggleStatus(row: XcxItem, checked: boolean) {
+  const onToggleStatus = (row: XcxItem, checked: boolean) => {
     const target = checked ? 1 : 0;
     updateXcxStatus({ id: row.id, status: target } as UpdateXcxStatusParams)
       .then(() => {

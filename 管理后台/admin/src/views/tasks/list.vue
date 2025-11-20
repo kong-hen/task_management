@@ -44,9 +44,9 @@
   <!-- 任务信息编辑弹窗 -->
   <t-dialog v-model:visible="dialogVisible" attach="body" :z-index="5000" :header="isEdit ? '修改任务' : '新增任务'"
     :confirm-btn="{ content: isSubmitting ? '提交中...' : '确定', theme: 'primary', loading: isSubmitting }"
-    :cancel-btn="{ content: '取消' }" @confirm="onSubmit">
+    :cancel-btn="{ content: '取消' }" @confirm="formRef?.submit()">
     <t-form ref="formRef" :data="form" :rules="isEdit ? rulesEdit : rulesCreate" label-align="left" :label-width="100"
-      :status-icon="true">
+      :status-icon="true" @submit="onSubmit">
       <t-form-item v-if="isEdit" label="ID" name="id">
         <t-input :value="form.id" disabled />
       </t-form-item>
@@ -97,7 +97,7 @@
 >
   import { ref, reactive, onMounted } from 'vue';
   import router from '@/router';
-  import { MessagePlugin } from 'tdesign-vue-next';
+  import { MessagePlugin, type FormProps } from 'tdesign-vue-next';
   import { getTaskList, createTask, updateTask, deleteTasks, updateTaskStatus, getDomainList } from '@/api/tasks';
   import type { TaskItem, TasksListResult, ListTasksParams, CreateTaskParams, UpdateTaskParams, UpdateTaskStatusParams, DeleteTasksParams, DomainItem, DomainResult } from '@/api/model/tasksModel';
 
@@ -126,7 +126,7 @@
   ];
 
   /* 获取任务列表 */
-  function fetchList() {
+  const fetchList = () => {
     loading.value = true;
     getTaskList({
       page: page.value,
@@ -150,10 +150,10 @@
   const domainList = ref<DomainItem[]>([])
 
   /* 获取域名列表 */
-  function fetchDomainList() {
+  const fetchDomainList = () => {
     getDomainList()
       .then((res: DomainResult) => {
-        domainList.value = res.list;
+        domainList.value = res.list || [];
       })
       .catch((err) => {
         console.error(err);
@@ -162,7 +162,7 @@
   }
 
   /* 选择变化 */
-  function onSelectChange(keys: Array<string | number>) {
+  const onSelectChange = (keys: Array<string | number>) => {
     selectedRowKeys.value = keys;
   }
 
@@ -190,7 +190,7 @@
   const form = reactive<UpdateTaskParams>(initForm());
 
   /* 新增小程序表单验证规则 */
-  const rulesCreate = {
+  const rulesCreate: FormProps['rules'] = {
     name: [{ required: true, message: '请输入任务名称', type: 'error', trigger: 'blur' }],
     domain: [{ required: true, message: '域名必选', type: 'error', trigger: 'blur' }, 
     { required: true, message: '域名必选', type: 'error', trigger: 'change' },],
@@ -200,21 +200,21 @@
   };
 
   /* 修改小程序表单验证规则 */
-  const rulesEdit = {
+  const rulesEdit: FormProps['rules'] = {
     id: [{ required: true, message: 'ID异常', type: 'error', trigger: 'blur' }],
     ...rulesCreate,
     status: [{ required: true, message: '请选择状态' }],
   };
 
   /* 点击创建按钮 */
-  function openCreate() {
+  const openCreate = () => {
     Object.assign(form, initForm());
     isEdit.value = false;
     dialogVisible.value = true;
   }
 
   /* 点击编辑按钮 */
-  function openEdit(row: TaskItem) {
+  const openEdit = (row: TaskItem) => {
     Object.assign(form, {
       id: row.id,
       name: row.name,
@@ -229,34 +229,30 @@
   }
 
   /* 提交表单 */
-  function onSubmit() {
+  const onSubmit: FormProps['onSubmit'] = ({ validateResult, firstError }) => {
     if (!formRef.value) return;
+    if (validateResult !== true) {
+      MessagePlugin.warning(firstError || '请完善表单信息');
+      return;
+    }
     isSubmitting.value = true;
-    formRef.value
-      .validate()
+    const payload: any = {
+      name: form.name,
+      domain: form.domain,
+      type: form.type,
+      award: form.award,
+      click: form.click,
+    };
+    const req = isEdit.value ? updateTask({ id: form.id, ...payload, status: form.status } as UpdateTaskParams) : createTask(payload as CreateTaskParams);
+    return req
       .then(() => {
-        const payload: any = {
-          name: form.name,
-          domain: form.domain,
-          type: form.type,
-          award: form.award,
-          click: form.click,
-        };
-        const req = isEdit.value ? updateTask({ id: form.id, ...payload, status: form.status } as UpdateTaskParams) : createTask(payload as CreateTaskParams);
-        return req
-          .then(() => {
-            MessagePlugin.success(isEdit.value ? '修改成功' : '新增成功');
-            dialogVisible.value = false;
-            fetchList();
-          })
-          .catch((err) => {
-            console.error(err);
-            MessagePlugin.error(isEdit.value ? '修改失败' : '新增失败');
-          });
+        MessagePlugin.success(isEdit.value ? '修改成功' : '新增成功');
+        dialogVisible.value = false;
+        fetchList();
       })
-      .catch((err: any) => {
+      .catch((err) => {
         console.error(err);
-        MessagePlugin.warning('请完善表单信息');
+        MessagePlugin.error(isEdit.value ? '修改失败' : '新增失败');
       })
       .finally(() => {
         isSubmitting.value = false;
@@ -264,7 +260,7 @@
   }
 
   /* 复制链接 */
-  function copyLink(row: TaskItem) {
+  const copyLink = (row: TaskItem) => {
     const link = row.domain +  '?id=' + row.id;
     navigator.clipboard.writeText(link)
       .then(() => {
@@ -277,7 +273,7 @@
   }
 
   /* 点击详情按钮 */
-  function openData(row: TaskItem) {
+  const openData = (row: TaskItem) => {
     router.push({
       path: `/tasks/data/${row.id}`,
       query: {
@@ -290,7 +286,7 @@
   const deleteConfirmDialog = ref(false);
 
   /* 批量删除任务 */
-  function onBatchDelete() {
+  const onBatchDelete = () => {
     if (selectedRowKeys.value.length === 0) return;
     deleteTasks({ ids: selectedRowKeys.value as number[] } as DeleteTasksParams)
       .then(() => {
@@ -308,7 +304,7 @@
   }
 
   /* 任务状态切换 */
-  function onToggleStatus(row: TaskItem, checked: boolean) {
+  const onToggleStatus = (row: TaskItem, checked: boolean) => {
     const target = checked ? 1 : 0;
     updateTaskStatus({ id: row.id, status: target } as UpdateTaskStatusParams)
       .then(() => {

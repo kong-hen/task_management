@@ -36,8 +36,8 @@
   <!-- 域名信息编辑弹窗 -->
   <t-dialog v-model:visible="dialogVisible" attach="body" :z-index="5000" :header="isEdit ? '修改域名' : '新增域名'"
     :confirm-btn="{ content: isSubmitting ? '提交中...' : '确定', theme: 'primary', loading: isSubmitting }"
-    :cancel-btn="{ content: '取消' }" @confirm="onSubmit">
-    <t-form ref="formRef" :data="form" :rules="isEdit ? rulesEdit : rulesCreate" label-align="left" :label-width="100" :status-icon="true">
+    :cancel-btn="{ content: '取消' }" @confirm="formRef?.submit()">
+    <t-form ref="formRef" :data="form" :rules="isEdit ? rulesEdit : rulesCreate" label-align="left" :label-width="100" :status-icon="true" @submit="onSubmit">
       <t-form-item v-if="isEdit" label="ID" name="id">
         <t-input :value="form.id" disabled />
       </t-form-item>
@@ -71,7 +71,7 @@
   lang="ts"
 >
   import { ref, reactive, onMounted } from 'vue';
-  import { MessagePlugin } from 'tdesign-vue-next';
+  import { MessagePlugin, type FormProps } from 'tdesign-vue-next';
   import { getDomainList, createDomain, deleteDomainsByIds, updateDomainStatus, updateDomain } from '@/api/domains';
   import type { DomainItem, DomainListResult, ListDomainParams, CreateDomainParams, UpdateDomainParams, UpdateDomainStatusParams, DeleteDomainsParams } from '@/api/model/domainsModel';
 
@@ -97,7 +97,7 @@
   ];
 
   /* 获取域名列表 */
-  function fetchList() {
+  const fetchList = () => {
     loading.value = true;
     getDomainList({ page: page.value, size: size.value } as ListDomainParams)
       .then((res: DomainListResult) => {
@@ -116,7 +116,7 @@
   }
 
   /* 监听选中行变化 */
-  function onSelectChange(keys: Array<string | number>) {
+  const onSelectChange = (keys: Array<string | number>) => {
     selectedRowKeys.value = keys;
   }
 
@@ -140,7 +140,7 @@
   const form = reactive<UpdateDomainParams>(initForm());
 
   /* 新增域名表单验证规则 */
-  const rulesCreate = {
+  const rulesCreate: FormProps['rules'] = {
     name: [{ required: true, message: '请输入域名名称', type: 'error', trigger: 'blur' }],
     url: [
       { required: true, message: '请输入URL', type: 'error' },
@@ -155,21 +155,21 @@
   };
 
   /* 修改域名表单验证规则 */
-  const rulesEdit = {
+  const rulesEdit: FormProps['rules'] = {
     id: [{ required: true, message: 'ID异常', type: 'error', trigger: 'blur' }],
     ...rulesCreate,
     status: [{ required: true, message: '请选择状态' }],
   };
 
   /* 点击创建按钮 */
-  function openCreate() {
+  const openCreate = () => {
     isEdit.value = false
     Object.assign(form, initForm());
     dialogVisible.value = true;
   }
 
   /* 点击编辑按钮 */
-  function openEdit(row: DomainItem) {
+  const openEdit = (row: DomainItem) => {
     isEdit.value = true
     Object.assign(form, {
       id: row.id,
@@ -181,31 +181,28 @@
   }
 
   /* 提交表单 */
-  function onSubmit() {
+  const onSubmit: FormProps['onSubmit'] = ({ validateResult, firstError }) => {
     if (!formRef.value) return;
+    if (validateResult !== true) {
+      console.error(firstError);
+      MessagePlugin.warning(firstError || '请完善表单信息');
+      return;
+    }
     isSubmitting.value = true;
-    formRef.value
-      .validate()
+    const payload: CreateDomainParams = {
+      name: form.name,
+      url: form.url,
+    };
+    const req = isEdit.value ? updateDomain({ id: form.id, ...payload, status: form.status } as UpdateDomainParams) : createDomain(payload);
+    return req
       .then(() => {
-        const payload: CreateDomainParams = {
-          name: form.name,
-          url: form.url,
-        };
-        const req = isEdit.value ? updateDomain({ id: form.id, ...payload, status: form.status } as UpdateDomainParams) : createDomain(payload);
-        return req
-          .then(() => {
-            MessagePlugin.success(isEdit.value ? '修改成功' : '新增成功');
-            dialogVisible.value = false;
-            fetchList();
-          })
-          .catch((err) => {
-            console.error(err);
-            MessagePlugin.error(isEdit.value ? '修改失败' : '新增失败');
-          });
+        MessagePlugin.success(isEdit.value ? '修改成功' : '新增成功');
+        dialogVisible.value = false;
+        fetchList();
       })
-      .catch((err: any) => {
+      .catch((err) => {
         console.error(err);
-        MessagePlugin.warning('请完善表单信息');
+        MessagePlugin.error(isEdit.value ? '修改失败' : '新增失败');
       })
       .finally(() => {
         isSubmitting.value = false;
@@ -213,7 +210,7 @@
   }
 
   /* 删除单个域名 */
-  function onDelete(id: number) {
+  const onDelete = (id: number) => {
     deleteDomainsByIds({ ids: [id] } as DeleteDomainsParams)
       .then(() => {
         MessagePlugin.success('删除成功');
@@ -229,7 +226,7 @@
   const deleteConfirmDialog = ref(false);
 
   /* 批量删除 */
-  function onBatchDelete() {
+  const onBatchDelete = () => {
     if (selectedRowKeys.value.length === 0) return;
     deleteDomainsByIds({ ids: selectedRowKeys.value as number[] } as DeleteDomainsParams)
       .then(() => {
@@ -247,7 +244,7 @@
   }
 
   /* 域名状态切换 */
-  function onToggleStatus(row: DomainItem, checked: boolean) {
+  const onToggleStatus = (row: DomainItem, checked: boolean) => {
     const target = checked ? 1 : 0;
     updateDomainStatus({ id: row.id, status: target } as UpdateDomainStatusParams)
       .then(() => {

@@ -47,7 +47,8 @@
 					</t-tag>
 				</template>
 				<template #award_type="{ row }">
-					<t-tag shape="round" :theme="row.award_type === 1 ? 'primary' : (row.award_type === 2 ? 'success' : (row.award_type === 3 ? 'warning' : 'danger'))"
+					<t-tag shape="round"
+						:theme="row.award_type === 1 ? 'primary' : (row.award_type === 2 ? 'success' : (row.award_type === 3 ? 'warning' : 'danger'))"
 						variant="light-outline">
 						{{ row.award_type === 1 ? '链接' : (row.award_type === 2 ? '文本' : (row.award_type === 3 ? '卡密' : '未知')) }}
 					</t-tag>
@@ -66,6 +67,7 @@
 >
 	import { onMounted, ref, nextTick } from 'vue'
 	import { useRoute } from 'vue-router'
+	import { MessagePlugin } from 'tdesign-vue-next'
 	import type { TaskItem, ViewItem, WeekParams, WeekResult, ViewParams, ViewResult } from '@/api/model/tasksModel'
 	import { getWeekData, getViewList } from '@/api/tasks'
 
@@ -163,7 +165,6 @@
 				weekChartData.series[0].data = res.did_list;
 				weekChartData.series[1].data = res.view_list;
 				weekChartData.series[2].data = res.click_list;
-
 				// 确保图表已初始化
 				if (weekDataChart) {
 					weekDataChart.setOption(weekChartData);
@@ -171,6 +172,7 @@
 			})
 			.catch(error => {
 				console.error('获取周数据失败:', error);
+				MessagePlugin.error('获取周数据失败');
 			})
 			.finally(() => {
 				isWeekLoading.value = false;
@@ -193,6 +195,7 @@
 	// 将taskInfoContainer的宽高应用到weekDataContainer
 	const applyDimensionsToWeekDataContainer = (): void => {
 		const dimensions = getTaskInfoContainerDimensions();
+		console.log('taskInfoContainer 宽高:', dimensions);
 		if (dimensions && weekDataContainer.value) {
 			weekDataContainer.value.style.width = `${dimensions.width}px`;
 			// 为了去除卡片组件操作插槽中日期选择组件高度超出8px的问题，需要减去8px

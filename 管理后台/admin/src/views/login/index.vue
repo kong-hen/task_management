@@ -64,7 +64,7 @@
 >
   import FullLogoIcon from '@/assets/assets-logo-full.svg'
   import type { FormInstanceFunctions, FormRule, SubmitContext } from 'tdesign-vue-next';
-  import { MessagePlugin } from 'tdesign-vue-next';
+  import { MessagePlugin, type FormProps } from 'tdesign-vue-next';
   import { ref } from 'vue';
   import router from '@/router';
   import { useRoute } from 'vue-router';
@@ -98,8 +98,8 @@
   const formData = ref({ ...initForm });
   const showPsw = ref(false);
 
-  const onSubmit = async (ctx: SubmitContext) => {
-    if (ctx.validateResult === true) {
+  const onSubmit: FormProps['onSubmit'] = async ({ validateResult }) => {
+    if (validateResult === true) {
       try {
         await userStore.login(formData.value);
 

@@ -1,6 +1,6 @@
 <template><t-row :gutter="[16, 16]">
     <t-col :xs="6" :xl="3">
-      <t-card title="在用任务" :bordered="false" class="item">
+      <t-card title="在用任务" :bordered="false" class="item" :loading="loading">
         <div class="item-top">
           <span style="font-size: 28px;">{{ usingTask }}</span>
         </div>
@@ -21,7 +21,7 @@
       </t-card>
     </t-col>
     <t-col :xs="6" :xl="3">
-      <t-card title="在用小程序" :bordered="false" class="item">
+      <t-card title="在用小程序" :bordered="false" class="item" :loading="loading">
         <div class="item-top">
           <span style="font-size: 28px;">{{ usingXcx }}</span>
         </div>
@@ -42,7 +42,7 @@
       </t-card>
     </t-col>
     <t-col :xs="6" :xl="3">
-      <t-card title="在用域名" :bordered="false" class="item">
+      <t-card title="在用域名" :bordered="false" class="item" :loading="loading">
         <div class="item-top">
           <span style="font-size: 28px;">{{ usingDomain }}</span>
         </div>
@@ -63,7 +63,7 @@
       </t-card>
     </t-col>
     <t-col :xs="6" :xl="3">
-      <t-card title="观看广告" :bordered="false" class="item">
+      <t-card title="观看广告" :bordered="false" class="item" :loading="loading">
         <div class="item-top">
           <span style="font-size: 28px;">{{ adViewTotal }}</span>
         </div>
@@ -87,19 +87,19 @@
 
   <t-row class="mt-l" :gutter="[16, 16]">
     <t-col :lg="9" :xs="12">
-      <t-card title="今日数据" :bordered="false">
+      <t-card title="今日数据" :bordered="false" :loading="loading">
         <div ref="todayDataContainer" style="height: 278px;"></div>
       </t-card>
     </t-col>
     <t-col :lg="3" :xs="12">
-      <t-card title="任务数据" :bordered="false">
+      <t-card title="任务数据" :bordered="false" :loading="loading">
         <div ref="viewDataContainer" style="height: 278px;"></div>
       </t-card>
     </t-col>
   </t-row>
 
-  <t-card title="近7日数据" :bordered="false" class="mt-l">
-    <t-table :data="weekList" :columns="columns" row-key="id" :loading="loading" :hover="true" size="medium"
+  <t-card title="近7日数据" :bordered="false" class="mt-l" :loading="loading">
+    <t-table :data="weekList" :columns="columns" row-key="id" :hover="true" size="medium"
       tableLayout="fixed" style="width: 100%;">
     </t-table>
   </t-card>
