@@ -165,7 +165,7 @@ https://www.duitang.com
 https://c-ssl.duitang.com
 ```
 
-- 配置`明文scheme拉起此小程序`
+- 配置`明文scheme拉起此小程序`（个人小程序不需要配置）
 ```html
 pages/user/view;pages/user/work
 ```

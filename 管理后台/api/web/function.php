@@ -97,18 +97,19 @@ function processAward($db, $task, $viewInfo, $tid, $viewId)
 
   // 处理卡密类型奖励
   if ($task['type'] == 3) {
-    $codeArr = explode("|", $task['award']);
-    if (count($codeArr) > 0) {
-      $award = $codeArr[0];
-      $remainder = implode("|", array_slice($codeArr, 1));
-
-      // 更新剩余卡密
-      $db->update(
-        'tasks',
-        ['award' => $remainder],
-        ['id' => $tid]
-      );
+    if(empty($task['award'])){
+      returnJson(500, '卡密耗尽，请联系管理员添加');
     }
+    $codeArr = explode("|", $task['award']);
+    $award = $codeArr[0];
+    $remainder = implode("|", array_slice($codeArr, 1));
+
+    // 更新剩余卡密
+    $db->update(
+      'tasks',
+      ['award' => $remainder],
+      ['id' => $tid]
+    );
   } else {
     $award = $task['award'];
   }
